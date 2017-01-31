@@ -16,8 +16,8 @@ class Model():
         wrapped = tf.nn.rnn_cell.DropoutWrapper(layer, input_keep_prob=self.dropout)
         self.core = rnn_cell.MultiRNNCell([wrapped] * args.num_layers, state_is_tuple=True)
 
-        self.input = tf.placeholder(tf.int32, [args.batch_size, args.seq_length])
-        self.target = tf.placeholder(tf.int32, [args.batch_size, args.seq_length])
+        self.x = tf.placeholder(tf.int32, [args.batch_size, args.seq_length])
+        self.y = tf.placeholder(tf.int32, [args.batch_size, args.seq_length])
         self.zero_state = self.core.zero_state(args.batch_size, tf.float32)
         self.start_state = [(tf.placeholder(tf.float32, [args.batch_size, args.hidden_size]), \
                             tf.placeholder(tf.float32, [args.batch_size, args.hidden_size])) \
@@ -28,7 +28,7 @@ class Model():
             softmax_b = tf.get_variable('softmax_b', [args.vocab_size])
             embedding = tf.get_variable('embedding', [args.vocab_size, args.hidden_size])
 
-            embedded = tf.nn.embedding_lookup(embedding, self.input)
+            embedded = tf.nn.embedding_lookup(embedding, self.x)
             inputs = tf.unpack(embedded, axis=1)
 
             state = self.start_state
@@ -49,7 +49,7 @@ class Model():
         self.logits = tf.matmul(output, softmax_w) + softmax_b
         self.probs = tf.nn.softmax(self.logits)
         loss = seq2seq.sequence_loss_by_example([self.logits],
-                                                [tf.reshape(self.target, [-1])],
+                                                [tf.reshape(self.y, [-1])],
                                                 [tf.ones([args.batch_size * args.seq_length])],
                                                 args.vocab_size)
         self.cost = tf.reduce_sum(loss) / args.batch_size / args.seq_length

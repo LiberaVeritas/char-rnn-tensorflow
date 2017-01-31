@@ -7,7 +7,7 @@ import time
 from six.moves import cPickle as pickle
 
 from utils import DataLoader
-from models import LanguageModel
+from model import Model
 
 
 def train(args):
@@ -62,11 +62,11 @@ def train(args):
         with open(new_vocab_file, 'wb') as f:
             pickle.dump(loader.vocab, f)
 
-    model = LanguageModel(args)
+    model = Model(args)
 
     with tf.Session() as sess:
-        tf.initialize_all_variables().run()
-        saver = tf.train.Saver(tf.all_variables())
+        sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver(tf.global_variables())
 
         if args.init_from is not None:
             try:
