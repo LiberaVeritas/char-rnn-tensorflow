@@ -7,7 +7,7 @@ import time
 from six.moves import cPickle as pickle
 
 from utils import DataLoader
-from model import Model
+from models import LanguageModel
 
 
 def train(args):
@@ -62,7 +62,7 @@ def train(args):
         with open(new_vocab_file, 'wb') as f:
             pickle.dump(loader.vocab, f)
 
-    model = Model(args)
+    model = LanguageModel(args)
 
     with tf.Session() as sess:
         tf.initialize_all_variables().run()
@@ -84,8 +84,8 @@ def train(args):
             for b, (x, y) in enumerate(loader.train):
                 global_step = e * loader.train.num_batches + b
                 start = time.time()
-                feed = {model.input: x,
-                        model.target: y,
+                feed = {model.x: x,
+                        model.y: y,
                         model.dropout: args.dropout,
                         model.lr: lr}
                 state_feed = {pl: s for pl, s in zip(sum(model.start_state, ()), sum(state, ()))}
@@ -104,8 +104,8 @@ def train(args):
                     start = time.time()
 
                     for b, (x, y) in enumerate(loader.val):
-                        feed = {model.input: x,
-                                model.target: y}
+                        feed = {model.x: x,
+                                model.y: y}
                         state_feed = {pl: s for pl, s in zip(sum(model.start_state, ()), sum(val_state, ()))}
                         feed.update(state_feed)
                         batch_loss, val_state = sess.run([model.cost, model.end_state], feed)
@@ -119,10 +119,10 @@ def train(args):
                     saver.save(sess, checkpoint_path)
                     print("model saved to {}".format(checkpoint_path))
 
-def get_train_args():
+def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str,
-                        default='species', help="directory with processed data")
+                        default='preprocessed', help="directory with processed data")
     parser.add_argument('--init_from', type=str,
                         default=None, help="checkpoint file or directory to intialize from, if directory the most recent checkpoint is used")
     parser.add_argument('--save_every', type=int,
@@ -138,11 +138,11 @@ def get_train_args():
     parser.add_argument('--seq_length', type=int,
                         default=64, help="sequence length")
     parser.add_argument('--learning_rate', type=float,
-                        default=0.002, help="learning rate")
+                        default=2e-3, help="learning rate")
     parser.add_argument('--decay_factor', type=float,
-                        default=0.97, help="learning rate decay factor")
+                        default=0.5, help="learning rate decay factor")
     parser.add_argument('--decay_every', type=int,
-                        default=1, help="how many epochs between every application of decay factor")
+                        default=5, help="how many epochs between every application of decay factor")
     parser.add_argument('--grad_clip', type=float,
                         default=5, help="maximum value for gradients, set to 0 to remove gradient clipping")
     parser.add_argument('--hidden_size', type=int,
@@ -157,5 +157,5 @@ def get_train_args():
     return args
 
 if __name__ == '__main__':
-    args = get_train_args()
+    args = get_args()
     train(args)

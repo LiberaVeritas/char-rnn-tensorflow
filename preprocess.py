@@ -8,9 +8,9 @@ from six.moves import cPickle as pickle
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_file', type=str,
-                    default='data/on_the_origin_of_species.txt', help="data file in utf-8")
+                    default='data/tinyshakespeare/input.txt', help="data file in utf-8")
 parser.add_argument('--data_dir', type=str,
-                    default='species', help="save directory for preprocessed files")
+                    default='preprocessed', help="save directory for preprocessed files")
 parser.add_argument('--val_frac', type=float,
                     default=0.1, help="fraction of data to use as validation set")
 parser.add_argument('--test_frac', type=float,
