@@ -7,7 +7,7 @@ import time
 from six.moves import cPickle as pickle
 
 from utils import DataLoader
-from model import Model
+from rnnlm import RNNLM
 
 
 def train(args):
@@ -62,7 +62,7 @@ def train(args):
         with open(new_vocab_file, 'wb') as f:
             pickle.dump(loader.vocab, f)
 
-    model = Model(args)
+    model = RNNLM(args)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())

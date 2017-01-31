@@ -7,7 +7,7 @@ from tensorflow.python.ops import seq2seq
 from tensorflow.python.ops import variable_scope
 
 
-class Model():
+class RNNLM():
 
     def __init__(self, args):
         layer_type = rnn_cell.BasicLSTMCell
