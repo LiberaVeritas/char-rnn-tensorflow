@@ -7,7 +7,7 @@ import random
 from six.moves import cPickle as pickle
 from six import text_type
 
-from model import Model
+from rnnlm import RNNLM
 
 
 def sample(model, sess, vocab, length, temperature=1.0, prime=None):
@@ -19,7 +19,7 @@ def sample(model, sess, vocab, length, temperature=1.0, prime=None):
         for char in prime[:-1]:
             x = np.empty((1, 1))
             x[0, 0] = vocab[char]
-            feed = {model.input: x}
+            feed = {model.x: x}
             state_feed = {pl: s for pl, s in zip(sum(model.start_state, ()), sum(state, ()))}
             feed.update(state_feed)
             state = sess.run([model.end_state], feed)[0]
@@ -34,7 +34,7 @@ def sample(model, sess, vocab, length, temperature=1.0, prime=None):
     for _ in range(length):
         x = np.empty((1, 1))
         x[0, 0] = vocab[char]
-        feed = {model.input: x}
+        feed = {model.x: x}
         state_feed = {pl: s for pl, s in zip(sum(model.start_state, ()), sum(state, ()))}
         feed.update(state_feed)
         logits, state = sess.run([model.logits, model.end_state], feed)
@@ -83,11 +83,11 @@ def setup_and_sample(args):
 
     saved_args.batch_size = 1
     saved_args.seq_length = 1
-    model = Model(saved_args)
+    model = RNNLM(saved_args)
 
     with tf.Session() as sess:
-        tf.initialize_all_variables().run()
-        saver = tf.train.Saver(tf.all_variables())
+        sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver(tf.global_variables())
 
         try:
             saver.restore(sess, checkpoint)
