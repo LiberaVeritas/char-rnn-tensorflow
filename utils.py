@@ -4,7 +4,7 @@ import numpy as np
 from six.moves import cPickle as pickle
 
 
-class DataLoader():
+class SequenceLoader():
 
     def __init__(self, args):
         self.args = args

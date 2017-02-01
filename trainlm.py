@@ -6,7 +6,7 @@ import os
 import time
 from six.moves import cPickle as pickle
 
-from utils import DataLoader
+from utils import SequenceLoader
 from rnnlm import RNNLM
 
 
@@ -14,7 +14,7 @@ def train(args):
     if args.verbose:
         print(vars(args))
 
-    loader = DataLoader(args)
+    loader = SequenceLoader(args)
 
     if args.init_from is not None:
         assert os.path.exists(args.init_from),"{} is not a file or directory".format(args.init_from)
