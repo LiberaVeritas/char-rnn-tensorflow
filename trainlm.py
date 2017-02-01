@@ -132,7 +132,7 @@ def get_args():
     parser.add_argument('--num_epochs', type=int,
                         default=128, help="number of epochs to train")
     parser.add_argument('--batch_size', type=int,
-                        default=64, help="minibatch size")
+                        default=50, help="minibatch size")
     parser.add_argument('--vocab_size', type=int,
                         default=None, help="vocabulary size, defaults to infer from the input")
     parser.add_argument('--seq_length', type=int,

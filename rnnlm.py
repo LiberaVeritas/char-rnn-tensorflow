@@ -23,7 +23,7 @@ class RNNLM():
                             tf.placeholder(tf.float32, [args.batch_size, args.hidden_size])) \
                             for _ in range(args.num_layers)]
         
-        with tf.variable_scope('model'):
+        with tf.variable_scope('rnnlm'):
             softmax_w = tf.get_variable('softmax_w', [args.hidden_size, args.vocab_size])
             softmax_b = tf.get_variable('softmax_b', [args.vocab_size])
             embedding = tf.get_variable('embedding', [args.vocab_size, args.hidden_size])
