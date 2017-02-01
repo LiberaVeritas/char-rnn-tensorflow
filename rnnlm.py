@@ -52,10 +52,10 @@ class RNNLM():
                                                 [tf.reshape(self.y, [-1])],
                                                 [tf.ones([args.batch_size * args.seq_length])],
                                                 args.vocab_size)
-        self.cost = tf.reduce_sum(loss) / args.batch_size / args.seq_length
+        self.loss = tf.reduce_sum(loss) / args.batch_size / args.seq_length
 
         self.lr = tf.placeholder_with_default(tf.constant(0, dtype=tf.float32), None)
         trainables = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, trainables), args.grad_clip)
+        grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, trainables), args.grad_clip)
         optimizer = tf.train.AdamOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, trainables))

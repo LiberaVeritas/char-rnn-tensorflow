@@ -4,6 +4,7 @@ import tensorflow as tf
 import argparse
 import os
 import time
+import datetime
 from six.moves import cPickle as pickle
 
 from utils import SequenceLoader
@@ -17,7 +18,6 @@ def train(args):
     loader = SequenceLoader(args)
 
     if args.init_from is not None:
-
         if os.path.isdir(args.init_from):
             assert os.path.exists(args.init_from),"{} is not a directory".format(args.init_from)
             parent_dir = args.init_from
@@ -66,6 +66,7 @@ def train(args):
     model = RNNLM(args)
 
     with tf.Session() as sess:
+        start_datetime = datetime.datetime.now().isoformat()
         sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(tf.global_variables())
 
@@ -77,6 +78,9 @@ def train(args):
 
             if args.verbose:
                 print("initializing from {}".format(checkpoint))
+
+        if args.tensorboard:
+            train_writer = tf.summary.FileWriter(os.path.join(args.save_dir, start_datetime))
 
         for e in range(args.num_epochs):
             if e % args.decay_every == 0:
@@ -93,12 +97,18 @@ def train(args):
                         model.lr: lr}
                 state_feed = {pl: s for pl, s in zip(sum(model.start_state, ()), sum(state, ()))}
                 feed.update(state_feed)
-                train_loss, state, _ = sess.run([model.cost, model.end_state, model.train_op], feed)
+                train_loss, state, _ = sess.run([model.loss, model.end_state, model.train_op], feed)
                 end = time.time()
-                print("{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}" \
-                    .format(global_step,
-                            args.num_epochs * loader.train.num_batches,
-                            e, train_loss, end - start))
+
+                if args.verbose:
+                    print("{}/{} (epoch {}), train_loss = {:.3f}, time/batch = {:.3f}" \
+                        .format(global_step,
+                                args.num_epochs * loader.train.num_batches,
+                                e, train_loss, end - start))
+
+                if args.tensorboard:
+                    summary = tf.Summary(value=[tf.Summary.Value(tag="rnnlm train batch loss", simple_value=float(train_loss))])
+                    train_writer.add_summary(summary, global_step)
 
                 if global_step % args.save_every == 0 \
                     or (e == args.num_epochs - 1 and b == loader.train.num_batches - 1):
@@ -111,16 +121,25 @@ def train(args):
                                 model.y: y}
                         state_feed = {pl: s for pl, s in zip(sum(model.start_state, ()), sum(val_state, ()))}
                         feed.update(state_feed)
-                        batch_loss, val_state = sess.run([model.cost, model.end_state], feed)
+                        batch_loss, val_state = sess.run([model.loss, model.end_state], feed)
                         all_loss += batch_loss
 
                     end = time.time()
                     val_loss = all_loss / loader.val.num_batches
-                    print("val_loss = {:.3f}, time/val = {:.3f}".format(val_loss, end - start))
-                    checkpoint_path = os.path.join(args.save_dir, 'iter_{}-val_{:.3f}.ckpt' \
-                                        .format(global_step, val_loss))
+                    
+                    if args.verbose:
+                        print("val_loss = {:.3f}, time/val = {:.3f}".format(val_loss, end - start))
+                    
+                    checkpoint_path = os.path.join(args.save_dir, '{}-iter_{}-val_{:.3f}.ckpt' \
+                                        .format(start_datetime, global_step, val_loss))
                     saver.save(sess, checkpoint_path)
-                    print("model saved to {}".format(checkpoint_path))
+                    
+                    if args.verbose:
+                        print("model saved to {}".format(checkpoint_path))
+
+                    if args.tensorboard:
+                        summary = tf.Summary(value=[tf.Summary.Value(tag="rnnlm val loss", simple_value=float(val_loss))])
+                        train_writer.add_summary(summary, global_step)
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -156,6 +175,8 @@ def get_args():
                         default=0.9, help="dropout keep probability applied to input between lstm layers")
     parser.add_argument('--verbose', action='store_true',
                         help="verbose printing")
+    parser.add_argument('--tensorboard', action='store_true',
+                        help="tensorboard logging to checkpoint directory")
     args = parser.parse_args()
     return args
 
