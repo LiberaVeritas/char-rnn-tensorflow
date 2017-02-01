@@ -56,6 +56,10 @@ class RNNLM():
 
         self.lr = tf.placeholder_with_default(tf.constant(0, dtype=tf.float32), None)
         trainables = tf.trainable_variables()
-        grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, trainables), args.grad_clip)
+        grads = tf.gradients(self.loss, trainables)
+
+        if args.grad_clip > 0:
+            grads, _ = tf.clip_by_global_norm(grads, args.grad_clip)
+
         optimizer = tf.train.AdamOptimizer(self.lr)
         self.train_op = optimizer.apply_gradients(zip(grads, trainables))
