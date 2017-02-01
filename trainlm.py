@@ -66,7 +66,6 @@ def train(args):
     model = RNNLM(args)
 
     with tf.Session() as sess:
-        start_datetime = datetime.datetime.now().isoformat()
         sess.run(tf.global_variables_initializer())
         saver = tf.train.Saver(tf.global_variables())
 
@@ -79,8 +78,14 @@ def train(args):
             if args.verbose:
                 print("initializing from {}".format(checkpoint))
 
+        start_datetime = datetime.datetime.now().isoformat()
+
         if args.tensorboard:
             train_writer = tf.summary.FileWriter(os.path.join(args.save_dir, start_datetime))
+
+            # tensorboard text descriptions are in development so to match run to config we have to title a graph
+            summary = tf.Summary(value=[tf.Summary.Value(tag="{}: {}".format(start_datetime, vars(args)), simple_value=0)])
+            train_writer.add_summary(summary)
 
         for e in range(args.num_epochs):
             if e % args.decay_every == 0:
