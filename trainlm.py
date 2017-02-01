@@ -79,7 +79,9 @@ def train(args):
                 print("initializing from {}".format(checkpoint))
 
         for e in range(args.num_epochs):
-            lr = args.learning_rate * (args.decay_factor ** e)
+            if e % args.decay_every == 0:
+                lr = args.learning_rate * (args.decay_factor ** e)
+
             state = sess.run(model.zero_state)
 
             for b, (x, y) in enumerate(loader.train):
@@ -131,19 +133,19 @@ def get_args():
     parser.add_argument('--save_dir', type=str,
                         default='checkpoints', help="directory to save checkpoints and config files")
     parser.add_argument('--num_epochs', type=int,
-                        default=128, help="number of epochs to train")
+                        default=50, help="number of epochs to train")
     parser.add_argument('--batch_size', type=int,
                         default=50, help="minibatch size")
     parser.add_argument('--vocab_size', type=int,
                         default=None, help="vocabulary size, defaults to infer from the input")
     parser.add_argument('--seq_length', type=int,
-                        default=64, help="sequence length")
+                        default=50, help="sequence length")
     parser.add_argument('--learning_rate', type=float,
                         default=2e-3, help="learning rate")
     parser.add_argument('--decay_factor', type=float,
-                        default=0.5, help="learning rate decay factor")
+                        default=0.97, help="learning rate decay factor")
     parser.add_argument('--decay_every', type=int,
-                        default=5, help="how many epochs between every application of decay factor")
+                        default=10, help="how many epochs between every application of decay factor")
     parser.add_argument('--grad_clip', type=float,
                         default=5, help="maximum value for gradients, set to 0 to remove gradient clipping")
     parser.add_argument('--hidden_size', type=int,
