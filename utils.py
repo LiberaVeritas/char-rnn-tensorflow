@@ -45,7 +45,7 @@ class SequenceLoader():
             x = data_tensor
             y = np.empty(data_tensor.shape, dtype=data_tensor.dtype)
             y[:-1] = x[1:]
-            y[-1] = y[0]
+            y[-1] = x[0]
 
             x_batches = np.split(x.reshape(args.batch_size, -1), num_batches, 1)
             y_batches = np.split(y.reshape(args.batch_size, -1), num_batches, 1)
