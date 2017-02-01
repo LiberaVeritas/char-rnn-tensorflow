@@ -17,11 +17,12 @@ def train(args):
     loader = SequenceLoader(args)
 
     if args.init_from is not None:
-        assert os.path.exists(args.init_from),"{} is not a file or directory".format(args.init_from)
 
         if os.path.isdir(args.init_from):
+            assert os.path.exists(args.init_from),"{} is not a directory".format(args.init_from)
             parent_dir = args.init_from
         else:
+            assert os.path.exists("{}.index".format(args.init_from)),"{} is not a checkpoint".format(args.init_from)
             parent_dir = os.path.dirname(args.init_from)
 
         config_file = os.path.join(parent_dir, "config.pkl")
