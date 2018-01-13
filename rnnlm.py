@@ -3,7 +3,7 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import rnn_cell
-from tensorflow.python.ops import seq2seq
+from tensorflow.contrib import legacy_seq2seq as seq2seq
 from tensorflow.python.ops import variable_scope
 
 
@@ -29,7 +29,7 @@ class RNNLM():
             embedding = tf.get_variable('embedding', [args.vocab_size, args.hidden_size])
 
             embedded = tf.nn.embedding_lookup(embedding, self.x)
-            inputs = tf.unpack(embedded, axis=1)
+            inputs = tf.unstack(embedded, axis=1)
 
             state = self.start_state
             outputs = []
@@ -44,7 +44,7 @@ class RNNLM():
                 outputs.append(output)
 
         self.end_state = states[-1]
-        output = tf.reshape(tf.concat(1, outputs), [-1, args.hidden_size])
+        output = tf.reshape(tf.concat(outputs, 1), [-1, args.hidden_size])
 
         self.logits = tf.matmul(output, softmax_w) + softmax_b
         self.probs = tf.nn.softmax(self.logits)
